@@ -1,11 +1,18 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Mail\WelcomeMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/test', function () {
     return ['message' => 'API working'];
+});
+
+Route::get('/test-mail', function(){
+    Mail::to('test@example.com')->send(new WelcomeMail('Kyle'));
+    return 'Mail send (check logs)';
 });
 
 Route::prefix('auth')->group(function(){
