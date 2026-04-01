@@ -1,8 +1,8 @@
 "use client";
 
+import CreateDateForm from "@/app/components/createDateForm";
 import api from "@/lib/api";
 import { useEffect, useState } from "react";
-import CreateDateForm from "../components/createDateForm";
 
 interface DateItem {
   id: number;
