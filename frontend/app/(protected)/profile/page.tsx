@@ -88,12 +88,12 @@ export default function Page() {
           className="w-32 h-32 rounded-full"
         />
         <p>{user.profile?.bio || 'No bio yet.'}</p>
-        {user.profile?.preferences && (
+        {/* {user.profile?.preferences && (
           <div>
             <h2>Preferences:</h2>
             <pre>{JSON.stringify(user.profile.preferences, null, 2)}</pre>
           </div>
-        )}
+        )} */}
 
         <h2>FRIENDS</h2>
         {friends && friends.length > 0 ? (
@@ -103,25 +103,27 @@ export default function Page() {
         ) : (
           <p>No friends yet.</p>
         )}
+
         {incoming.length > 0 && outgoing.length > 0 && (
           <h2>PENDING</h2>
         )}
-        {incoming.length > 0 && (
-          <h3>Incoming</h3>
-        )}
 
         {incoming && incoming.length > 0 && (
-          incoming.map((friend) => (
-            <FriendIncomingCard key={friend.id} friend={friend} />
-          ))
+          <>
+            <h3>Incoming</h3>
+            {incoming.map((friend) => (
+              <FriendIncomingCard key={friend.id} friend={friend} />
+            ))}
+          </>
         )}
-        {outgoing.length > 0 && (
-          <h3>Outgoing</h3>
-        )}
+
         {outgoing && outgoing.length > 0 && (
-          outgoing.map((friend) => (
-            <FriendOutgoingCard key={friend.id} friend={friend} />
-          ))
+          <>
+            <h3>Outgoing</h3>
+            {outgoing.map((friend) => (
+              <FriendOutgoingCard key={friend.id} friend={friend} />
+            ))}
+          </>
         )}
       </div>
 
@@ -140,25 +142,25 @@ export default function Page() {
           <button type='submit' className="bg-sky-500 text-white p-2 rounded hover:bg-sky-600 disabled:opacity-50">Search</button>
         </form>
 
-        <h3>Available</h3>
-        {availableResults.length > 0 ? (
-          availableResults.map((friend) => (
-            <FriendResultCard key={friend.id} friend={friend} />
-          ))
-        ) : (
-          <p>Search results.</p>
+        {availableResults.length > 0 && (
+          <>
+            <h3>Available</h3>
+            {availableResults.map((friend) => (
+              <FriendResultCard key={friend.id} friend={friend} />
+            ))}
+          </>
         )}
-        <h3>Existing</h3>
-        {existingResults.length > 0 ? (
-          existingResults.map((friend) => (
-            friend.status == 'pending' ? (
-              <FriendOutgoingCard key={friend.id} friend={friend} />
-            ) : (
-              <ExistingFriendCard key={friend.id} friend={friend} />
-            )
-          ))
-        ) : (
-          <p>Search results.</p>
+        {existingResults.length > 0 && (
+          <>
+            <h3>Existing</h3>
+            {existingResults.map((friend) => (
+              friend.status == 'pending' ? (
+                <FriendOutgoingCard key={friend.id} friend={friend} />
+              ) : (
+                <ExistingFriendCard key={friend.id} friend={friend} />
+              )
+            ))}
+          </>
         )}
 
       </div>
