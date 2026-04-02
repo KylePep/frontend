@@ -24,9 +24,24 @@ export default function FriendCard({ friend }: { friend: Friend }) {
   );
 }
 
+export function ExistingFriendCard({ friend }: { friend: Friend }) {
+  return (
+    <div className="flex items-center gap-2 p-2 border rounded">
+      <img
+        src={friend.profile?.avatar || '/default-avatar.png'}
+        alt={`${friend.name} avatar`}
+        className="w-12 h-12 rounded-full"
+      />
+      <span>{friend.name}</span>
+      <span>Existing Friend</span>
+    </div>
+  );
+}
+
 export function FriendIncomingCard({ friend }: { friend: Friend }) {
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [declined, setDeclined] = useState(false);
   const [error, setError] = useState('');
 
   const handleAcceptFriend = async () => {
@@ -37,7 +52,20 @@ export function FriendIncomingCard({ friend }: { friend: Friend }) {
       await patch(`/api/friends/${friend.friendship_id}/accept`);
       setAccepted(true); // mark as sent
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send friend request');
+      setError(err.response?.data?.message || 'Failed to accept friend request');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleDeclineFriend = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await ensureCsrf();
+      await patch(`/api/friends/${friend.friendship_id}/decline`);
+      setDeclined(true); // mark as sent
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to decline friend request');
     } finally {
       setLoading(false);
     }
@@ -60,6 +88,14 @@ export function FriendIncomingCard({ friend }: { friend: Friend }) {
         className="bg-sky-500 text-white p-2 rounded hover:bg-sky-600 disabled:opacity-50"
       >
         {accepted ? 'Accepted' : loading ? 'Accepting...' : 'Accept Friend'}
+      </button>
+      <button
+        type="button"
+        onClick={handleDeclineFriend}
+        disabled={loading || declined}
+        className="bg-red-500 text-white p-2 rounded hover:bg-red-600 disabled:opacity-50"
+      >
+        {declined ? 'Declined' : loading ? 'Declining...' : 'Decline Friend'}
       </button>
       {error && <span className="text-red-500 ml-2">{error}</span>}
     </div>

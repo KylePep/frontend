@@ -1,6 +1,6 @@
 'use client';
 
-import FriendCard, { FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '@/app/components/friendCard';
+import FriendCard, { ExistingFriendCard, FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '@/app/components/friendCard';
 import { useAuthContext } from '@/context/AuthContext';
 import { ensureCsrf } from '@/lib/csrf';
 import { get } from '@/lib/request';
@@ -15,10 +15,21 @@ interface Friend {
   }
 }
 
+interface ExistingFriend extends Friend {
+  friendship_id: number;
+  status: 'pending' | 'accepted';
+}
+
+interface SearchResult {
+  available: Friend[];
+  existing: ExistingFriend[];
+}
+
 export default function Page() {
   const { user } = useAuthContext();
   const [name, setName] = useState('');
-  const [friendResults, setFriendResults] = useState<Friend[]>([]);
+  const [availableResults, setAvailableResults] = useState<Friend[]>([]);
+  const [existingResults, setExistingResults] = useState<ExistingFriend[]>([]);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<Friend[]>([]);
   const [outgoing, setOutgoing] = useState<Friend[]>([]);
@@ -52,8 +63,9 @@ export default function Page() {
     try {
       await ensureCsrf();
 
-      const res = await get<Friend[]>(`/api/users/search?name=${encodeURIComponent(name)}`);
-      setFriendResults(res.data)
+      const res = await get<SearchResult>(`/api/users/search?name=${encodeURIComponent(name)}`);
+      setAvailableResults(res.data.available);
+      setExistingResults(res.data.existing);
       setName('');
 
     } catch (err: any) {
@@ -91,22 +103,25 @@ export default function Page() {
         ) : (
           <p>No friends yet.</p>
         )}
-        <h2>PENDING</h2>
-        <h3>Incoming</h3>
-        {incoming && incoming.length > 0 ? (
+        {incoming.length > 0 && outgoing.length > 0 && (
+          <h2>PENDING</h2>
+        )}
+        {incoming.length > 0 && (
+          <h3>Incoming</h3>
+        )}
+
+        {incoming && incoming.length > 0 && (
           incoming.map((friend) => (
             <FriendIncomingCard key={friend.id} friend={friend} />
           ))
-        ) : (
-          <p>No friends yet.</p>
         )}
-        <h3>Outgoing</h3>
-        {outgoing && outgoing.length > 0 ? (
+        {outgoing.length > 0 && (
+          <h3>Outgoing</h3>
+        )}
+        {outgoing && outgoing.length > 0 && (
           outgoing.map((friend) => (
             <FriendOutgoingCard key={friend.id} friend={friend} />
           ))
-        ) : (
-          <p>No friends yet.</p>
         )}
       </div>
 
@@ -125,9 +140,22 @@ export default function Page() {
           <button type='submit' className="bg-sky-500 text-white p-2 rounded hover:bg-sky-600 disabled:opacity-50">Search</button>
         </form>
 
-        {friendResults.length > 0 ? (
-          friendResults.map((friend) => (
+        <h3>Available</h3>
+        {availableResults.length > 0 ? (
+          availableResults.map((friend) => (
             <FriendResultCard key={friend.id} friend={friend} />
+          ))
+        ) : (
+          <p>Search results.</p>
+        )}
+        <h3>Existing</h3>
+        {existingResults.length > 0 ? (
+          existingResults.map((friend) => (
+            friend.status == 'pending' ? (
+              <FriendOutgoingCard key={friend.id} friend={friend} />
+            ) : (
+              <ExistingFriendCard key={friend.id} friend={friend} />
+            )
           ))
         ) : (
           <p>Search results.</p>
