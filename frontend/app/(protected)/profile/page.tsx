@@ -1,9 +1,43 @@
 'use client';
 
+import FriendCard, { FriendResultCard } from '@/app/components/friendCard';
 import { useAuthContext } from '@/context/AuthContext';
+import { ensureCsrf } from '@/lib/csrf';
+import { get } from '@/lib/request';
+import { FormEvent, useState } from 'react';
+
+interface Friend {
+  id: number;
+  name: string;
+  profile: {
+    avatar: string;
+  }
+}
 
 export default function Page() {
   const { user } = useAuthContext();
+  const [name, setName] = useState('');
+  const [friendResults, setFriendResults] = useState<Friend[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSearch = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await ensureCsrf();
+
+      const res = await get<Friend[]>(`/api/users/search?name=${encodeURIComponent(name)}`);
+      setFriendResults(res.data)
+      setName('');
+
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to find user');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (!user) return <div>Loading...</div>;
 
@@ -24,25 +58,40 @@ export default function Page() {
             <pre>{JSON.stringify(user.profile.preferences, null, 2)}</pre>
           </div>
         )}
+
+
+        {user.friends && user.friends.length > 0 ? (
+          user.friends.map((friend) => (
+            <FriendCard key={friend.id} friend={friend} />
+          ))
+        ) : (
+          <p>No friends yet.</p>
+        )}
       </div>
 
       {/* Friends List */}
       <div className="flex-1 flex flex-col gap-2">
         <h2>Friends</h2>
-        {user.friends && user.friends.length > 0 ? (
-          user.friends.map((friend) => (
-            <div key={friend.id} className="flex items-center gap-2 p-2 border rounded">
-              <img
-                src={friend.profile?.avatar || '/default-avatar.png'}
-                alt={`${friend.name} avatar`}
-                className="w-12 h-12 rounded-full"
-              />
-              <span>{friend.name}</span>
-            </div>
+        <form onSubmit={handleSearch} className="flex flex-col gap-2 p-4 border border-sky-300 rounded-xl">
+          <input
+            type="text"
+            placeholder="Friend's Name"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="p-2 border rounded"
+            required
+          />
+          <button type='submit' className="bg-sky-500 text-white p-2 rounded hover:bg-sky-600 disabled:opacity-50">Search</button>
+        </form>
+
+        {friendResults.length > 0 ? (
+          friendResults.map((friend) => (
+            <FriendResultCard key={friend.id} friend={friend} />
           ))
         ) : (
-          <p>No friends yet.</p>
+          <p>Search results.</p>
         )}
+
       </div>
     </div>
   );

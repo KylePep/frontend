@@ -51,6 +51,11 @@ class User extends Authenticatable
     protected static function booted(){
         static::created(function($user){
             SendWelcomeEmail::dispatch($user)->delay(now()->addSeconds(10));
+            $user->profile()->create([
+            'bio' => null,
+            'avatar' => 'https://i.pravatar.cc/150?u=' . $user->id,
+            'preferences' => json_encode([]),
+        ]);
         });
     }
 
