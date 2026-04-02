@@ -75,16 +75,14 @@ class FriendshipController extends Controller
         $userId = Auth::id();
         $friendId = $request->friend_id;
 
-        // Normalize order to prevent duplicates
-        [$userId, $friendId] = collect([$userId, $friendId])
-            ->sort()
-            ->values()
-            ->all();
-
-        // Check if already exists
-        $exists = Friendship::where('user_id', $userId)
-            ->where('friend_id', $friendId)
-            ->exists();
+        // Check if a friendship already exists (any order)
+        $exists = Friendship::where(function ($query) use ($userId, $friendId) {
+            $query->where('user_id', $userId)
+                ->where('friend_id', $friendId);
+        })->orWhere(function ($query) use ($userId, $friendId) {
+            $query->where('user_id', $friendId)
+                ->where('friend_id', $userId);
+        })->exists();
 
         if ($exists) {
             return response()->json([
@@ -104,39 +102,24 @@ class FriendshipController extends Controller
     /**
      * Accept a friend request
      */
-    public function accept(Friendship $friendship)
+    public function accept($friendshipId)
     {
-        $userId = Auth::id();
+        $friendship = $this->resolveFriendship($friendshipId, true);
 
-        if ($friendship->friend_id !== $userId && $friendship->user_id !== $userId) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        if ($friendship->friend_id !== $userId) {
-            return response()->json(['message' => 'Only recipient can accept'], 403);
-        }
-
-        $friendship->update([
-            'status' => 'accepted'
-        ]);
+        $friendship->update(['status' => 'accepted']);
 
         return response()->json(['message' => 'Friend request accepted']);
     }
 
+
     /**
      * Decline a friend request
      */
-    public function decline(Friendship $friendship)
+    public function decline($friendshipId)
     {
-        $userId = Auth::id();
+        $friendship = $this->resolveFriendship($friendshipId, true);
 
-        if ($friendship->friend_id !== $userId && $friendship->user_id !== $userId) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
-
-        $friendship->update([
-            'status' => 'declined'
-        ]);
+        $friendship->update(['status' => 'declined']);
 
         return response()->json(['message' => 'Friend request declined']);
     }
@@ -144,16 +127,30 @@ class FriendshipController extends Controller
     /**
      * Remove friendship (unfriend)
      */
-    public function destroy(Friendship $friendship)
+    public function destroy($friendshipId)
     {
-        $userId = Auth::id();
-
-        if ($friendship->friend_id !== $userId && $friendship->user_id !== $userId) {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+        $friendship = $this->resolveFriendship($friendshipId);
 
         $friendship->delete();
 
         return response()->json(['message' => 'Friend removed']);
+    }
+
+    protected function resolveFriendship(int $friendshipId, bool $requireRecipient = false): Friendship
+    {
+        $friendship = Friendship::findOrFail($friendshipId);
+        $userId = Auth::id();
+
+        // Must be either sender or recipient
+        if ($friendship->user_id !== $userId && $friendship->friend_id !== $userId) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Optionally require the current user to be the recipient
+        if ($requireRecipient && $friendship->friend_id !== $userId) {
+            abort(403, 'Only recipient can perform this action');
+        }
+
+        return $friendship;
     }
 }

@@ -1,12 +1,13 @@
 'use client';
 
-import FriendCard, { FriendResultCard } from '@/app/components/friendCard';
+import FriendCard, { FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '@/app/components/friendCard';
 import { useAuthContext } from '@/context/AuthContext';
 import { ensureCsrf } from '@/lib/csrf';
 import { get } from '@/lib/request';
 import { FormEvent, useEffect, useState } from 'react';
 
 interface Friend {
+  friendship_id: number;
   id: number;
   name: string;
   profile: {
@@ -77,15 +78,32 @@ export default function Page() {
         <p>{user.profile?.bio || 'No bio yet.'}</p>
         {user.profile?.preferences && (
           <div>
-            <h3>Preferences:</h3>
+            <h2>Preferences:</h2>
             <pre>{JSON.stringify(user.profile.preferences, null, 2)}</pre>
           </div>
         )}
 
-
+        <h2>FRIENDS</h2>
         {friends && friends.length > 0 ? (
           friends.map((friend) => (
             <FriendCard key={friend.id} friend={friend} />
+          ))
+        ) : (
+          <p>No friends yet.</p>
+        )}
+        <h2>PENDING</h2>
+        <h3>Incoming</h3>
+        {incoming && incoming.length > 0 ? (
+          incoming.map((friend) => (
+            <FriendIncomingCard key={friend.id} friend={friend} />
+          ))
+        ) : (
+          <p>No friends yet.</p>
+        )}
+        <h3>Outgoing</h3>
+        {outgoing && outgoing.length > 0 ? (
+          outgoing.map((friend) => (
+            <FriendOutgoingCard key={friend.id} friend={friend} />
           ))
         ) : (
           <p>No friends yet.</p>
