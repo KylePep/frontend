@@ -2,53 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Date;
+use App\Services\DateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DateController extends Controller
 {
+    public function __construct(
+        protected DateService $date_service
+    )
+    {}
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user()->load(['friendsOfMine', 'friendOf']);
-
-        // Get all friends IDs
-        $friendIds = $user->friends->pluck('id');
-
-
-        $publicDates = Date::with('user:id,name')
-        ->where('is_public', true)
-        ->where('user_id', '!=', $user->id)
-        ->get();
-
-        // Separate friends' dates and other public dates
-        $friendsDates = $publicDates->whereIn('user_id', $friendIds)->values();
-        $otherPublicDates = $publicDates->whereNotIn('user_id', $friendIds)->values();
-
-        $myDates = $user->dates()->get();
-
-        return response()->json([
-            'mine' => $myDates,
-            'public_friends' => $friendsDates,
-            'public_others' => $otherPublicDates,
-        ]);
+        return response()->json(
+            $this->date_service->getDashboardDates(Auth::user())
+        );
     }
 
     public function userDates($id){
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        if ($id != $user->id){
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
-        $dates = $user->dates()->get();
-
-        return response()->json($dates);
+        return response()->json(
+            $this->date_service->getUserDates(Auth::user(),$id)
+        );
     }
 
     /**
@@ -62,10 +39,10 @@ class DateController extends Controller
             'is_public' => 'required|boolean',
         ]);
 
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        $date = $user->dates()->create($validated);
+        $date = $this->date_service->createDate(
+            Auth::user(),
+            $validated
+        );
 
         return response()->json([
             'message' => 'Date Created successfully',

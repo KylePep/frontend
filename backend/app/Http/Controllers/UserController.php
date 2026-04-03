@@ -4,81 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\Friendship;
 use App\Models\User;
+use App\Services\FriendshipService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
-    public function search(Request $request){
 
-        $userId = Auth::id();
-
+    public function __construct(
+        protected FriendshipService $friendshipService
+    ) {}
+    
+    public function search(Request $request)
+    {
         $query = $request->query('name');
 
-        if (!$query){
+        if (!$query) {
             return response()->json([
                 'message' => 'Name query is required'
             ], 400);
         }
 
-        
-        // Get all friendships involving current user
-        $friendships = Friendship::where(function ($q) use ($userId) {
-            $q->where('user_id', $userId)
-            ->orWhere('friend_id', $userId);
-        })->get();
+        $results = $this->friendshipService
+            ->getUserSearchResults(Auth::id(), $query);
 
-        // Map: other_user_id => friendship
-        $friendshipMap = [];
-
-        foreach ($friendships as $f) {
-        $otherUserId = $f->user_id === $userId
-            ? $f->friend_id
-            : $f->user_id;
-
-        $friendshipMap[$otherUserId] = $f;
-    }
-        
-        // Search users
-        $users = User::where('name', 'LIKE', "%{$query}%")
-            ->where('id', '!=', $userId) // exclude self
-            ->select('id', 'name')
-            ->with(['profile:id,user_id,avatar'])
-            ->limit(10)
-            ->get();
-
-        $available = [];
-        $existing = [];
-
-        foreach ($users as $user) {
-            $friendship = $friendshipMap[$user->id] ?? null;
-
-            // Skip declined entirely
-            if ($friendship && $friendship->status === 'declined') {
-                continue;
-            }
-
-            $formatted = [
-                'id' => $user->id,
-                'name' => $user->name,
-                'profile' => [
-                    'avatar' => $user->profile?->avatar,
-                ],
-                'friendship_id' => $friendship?->id,
-                'status' => $friendship?->status,
-            ];
-
-            if ($friendship) {
-                $existing[] = $formatted; // pending or accepted
-            } else {
-                $available[] = $formatted; // no relationship
-            }
-        }
-
-        return response()->json([
-            'available' => $available,
-            'existing' => $existing,
-        ]);
+        return response()->json($results);
     }
     /**
      * Display a listing of the resource.
