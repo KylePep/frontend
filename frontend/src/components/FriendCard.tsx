@@ -1,6 +1,6 @@
-import { Friend } from "..//types/friend";
-import axios from "axios";
 import { useState } from "react";
+import { axios } from "@/lib/axios";
+import { Friend } from "@/types/friend";
 
 export default function FriendCard({ friend }: { friend: Friend }) {
   return (

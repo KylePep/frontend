@@ -3,12 +3,13 @@ import { axios } from "@/lib/axios.js";
 import Echo from 'laravel-echo';
 
 import Pusher from 'pusher-js';
-window.Pusher = Pusher;
 
 const useEcho = () => {
   const [echoInstance, setEchoInstance] = useState(null);
 
   useEffect(() => {
+    window.Pusher = Pusher;
+
     const echo = new Echo({
       broadcaster: 'reverb',
       key: process.env.NEXT_PUBLIC_REVERB_APP_KEY,

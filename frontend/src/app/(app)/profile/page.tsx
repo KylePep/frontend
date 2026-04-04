@@ -1,10 +1,10 @@
 'use client';
 
-import { ExistingFriend, Friend, SearchResult } from '../../../types/friend';
+import { ExistingFriend, Friend, SearchResult } from '@/types/friend';
 import { FormEvent, useEffect, useState } from 'react';
-import FriendCard, { ExistingFriendCard, FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '../../../components/FriendCard';
-import { useAuth } from '../../../hooks/auth'
-import axios from 'axios';
+import FriendCard, { ExistingFriendCard, FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '@/components/FriendCard';
+import { useAuth } from '@/hooks/auth'
+import { axios } from '@/lib/axios';
 
 export default function Page() {
   const { user } = useAuth({ middleware: 'auth' });
@@ -59,17 +59,17 @@ export default function Page() {
     <div className="flex min-h-screen gap-8 p-4">
       {/* Profile Info */}
       <div className="flex-1 flex flex-col gap-4">
-        <h1>{user.name}'s Profile</h1>
+        <h1>{user?.name}'s Profile</h1>
         <img
-          src={user.profile?.avatar || '/default-avatar.png'}
-          alt={`${user.name} avatar`}
+          src={user?.profile?.avatar || '/default-avatar.png'}
+          alt={`${user?.name} avatar`}
           className="w-32 h-32 rounded-full"
         />
-        <p>{user.profile?.bio || 'No bio yet.'}</p>
-        {/* {user.profile?.preferences && (
+        <p>{user?.profile?.bio || 'No bio yet.'}</p>
+        {/* {user?.profile?.preferences && (
           <div>
             <h2>Preferences:</h2>
-            <pre>{JSON.stringify(user.profile.preferences, null, 2)}</pre>
+            <pre>{JSON.stringify(user?.profile.preferences, null, 2)}</pre>
           </div>
         )} */}
 

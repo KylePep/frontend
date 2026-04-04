@@ -9,22 +9,12 @@ import { DropdownButton } from '@/components/DropdownLink'
 import { useAuth } from '@/hooks/auth'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import useEcho from "@/hooks/echo.js"
 
 const Navigation = ({ user }) => {
     const { logout } = useAuth()
 
     const [open, setOpen] = useState(false)
-    const echo = useEcho()
 
-    useEffect(() => {
-        if (echo) {
-            echo.private(`chat.${user?.id}`)
-                .listen('MessageSent', (event) => {
-                    console.log('Real-time event received: ', event)
-                })
-        }
-    });
 
     return (
         <nav className="bg-white border-b border-gray-100">
