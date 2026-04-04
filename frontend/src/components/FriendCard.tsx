@@ -1,6 +1,5 @@
-import { ensureCsrf } from "@/lib/csrf";
-import { patch, post } from "@/lib/request";
-import { Friend } from "@/types/friend";
+import { Friend } from "..//types/friend";
+import axios from "axios";
 import { useState } from "react";
 
 export default function FriendCard({ friend }: { friend: Friend }) {
@@ -40,8 +39,7 @@ export function FriendIncomingCard({ friend }: { friend: Friend }) {
     setLoading(true);
     setError('');
     try {
-      await ensureCsrf();
-      await patch(`/api/friends/${friend.friendship_id}/accept`);
+      await axios.patch(`/api/friends/${friend.friendship_id}/accept`);
       setAccepted(true); // mark as sent
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to accept friend request');
@@ -53,8 +51,7 @@ export function FriendIncomingCard({ friend }: { friend: Friend }) {
     setLoading(true);
     setError('');
     try {
-      await ensureCsrf();
-      await patch(`/api/friends/${friend.friendship_id}/decline`);
+      await axios.patch(`/api/friends/${friend.friendship_id}/decline`);
       setDeclined(true); // mark as sent
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to decline friend request');
@@ -119,8 +116,7 @@ export function FriendResultCard({ friend }: { friend: Friend }) {
     setLoading(true);
     setError('');
     try {
-      await ensureCsrf();
-      await post('/api/friends', { friend_id: friend.id });
+      await axios.post('/api/friends', { friend_id: friend.id });
       setAdded(true); // mark as sent
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to send friend request');

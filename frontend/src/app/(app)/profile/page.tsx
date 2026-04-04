@@ -1,14 +1,13 @@
 'use client';
 
-import FriendCard, { ExistingFriendCard, FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '@/app/components/FriendCard';
-import { useAuthContext } from '@/context/AuthContext';
-import { ensureCsrf } from '@/lib/csrf';
-import { get } from '@/lib/request';
-import { ExistingFriend, Friend, SearchResult } from '@/types/friend';
+import { ExistingFriend, Friend, SearchResult } from '../../../types/friend';
 import { FormEvent, useEffect, useState } from 'react';
+import FriendCard, { ExistingFriendCard, FriendIncomingCard, FriendOutgoingCard, FriendResultCard } from '../../../components/FriendCard';
+import { useAuth } from '../../../hooks/auth'
+import axios from 'axios';
 
 export default function Page() {
-  const { user } = useAuthContext();
+  const { user } = useAuth({ middleware: 'auth' });
   const [name, setName] = useState('');
   const [availableResults, setAvailableResults] = useState<Friend[]>([]);
   const [existingResults, setExistingResults] = useState<ExistingFriend[]>([]);
@@ -20,9 +19,7 @@ export default function Page() {
 
   const fetchFriends = async () => {
     try {
-      await ensureCsrf();
-
-      const res = await get<any>('/api/friends'); // we'll define this
+      const res = await axios.get<any>('/api/friends');
       setFriends(res.data.accepted);
       setIncoming(res.data.incoming);
       setOutgoing(res.data.outgoing);
@@ -43,9 +40,8 @@ export default function Page() {
     setLoading(true);
     setError('');
     try {
-      await ensureCsrf();
 
-      const res = await get<SearchResult>(`/api/users/search?name=${encodeURIComponent(name)}`);
+      const res = await axios.get<SearchResult>(`/api/users/search?name=${encodeURIComponent(name)}`);
       setAvailableResults(res.data.available);
       setExistingResults(res.data.existing);
       setName('');
