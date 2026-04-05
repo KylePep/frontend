@@ -11,7 +11,11 @@ class Room extends Model
     public function users()
     {
         return $this->belongsToMany(User::class)
-            ->withPivot(['joined_at', 'left_at'])
-            ->withTimestamps();
+            ->withPivot(['joined_at', 'left_at']);
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(RoomMessage::class);
     }
 }

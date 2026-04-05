@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Room;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Events\RoomCreated;
 
 class RoomService
 {
@@ -26,6 +27,8 @@ class RoomService
                 $creator->id => ['joined_at' =>now()],
                 $invitee->id => ['joined_at' => now()],
             ]);
+
+            broadcast(new RoomCreated($room->load('users')));
 
             return $room->load('users');
         });

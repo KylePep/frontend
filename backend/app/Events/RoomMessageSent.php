@@ -2,6 +2,7 @@
 
 namespace App\Events;
 
+use App\Models\RoomMessage;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -10,31 +11,24 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class RoomMessageSent
+class RoomMessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $message;
-    public $roomId;
 
-    /**
-     * Create a new event instance.
-     */
-    public function __construct($roomId, $message)
+    public function __construct(RoomMessage $message)
     {
-        $this->roomId = $roomId;
-        $this->message = $message;
+        $this->message = $message->load('user');
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, Channel>
-     */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new PrivateChannel("room.{$this->roomId}"),
-        ];
+        return new PrivateChannel('room.' . $this->message->room_id);
+    }
+
+    public function broadcastAs()
+    {
+        return 'RoomMessageSent';
     }
 }
