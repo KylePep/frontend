@@ -41,10 +41,16 @@ class RoomService
         ]);
     }
 
-    public function leaveRoom(Room $room, User $user):void
+    public function leaveRoom(Room $room, User $user): void
     {
         $room->users()->updateExistingPivot($user->id, [
             'left_at' => now()
         ]);
+
+        $activeUsers = $room->users()->wherePivot('left_at', null)->count();
+        if ($activeUsers === 0) {
+            $room->delete(); 
+        }
     }
+
 }

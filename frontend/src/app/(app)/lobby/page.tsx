@@ -63,19 +63,6 @@ export default function Lobby() {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (!echo || !user?.id) return;
-
-    const channel = echo.private(`chat.${user.id}`)
-      .listen('.RoomCreated', (event: any) => {
-        console.log('Invited to room:', event.room);
-      });
-
-    return () => {
-      channel.stopListening('.RoomCreated');
-    };
-  }, [echo, user?.id]);
-
 
   return (
     <div>

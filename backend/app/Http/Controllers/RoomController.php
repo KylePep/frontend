@@ -37,6 +37,21 @@ class RoomController extends Controller
         return response()->json($room);
     }
 
+    public function leave(Room $room, RoomService $service)
+    {
+        $user = Auth::user();
+
+        $service->leaveRoom($room, $user);
+
+        // Optional: broadcast to other users that someone left
+        // broadcast(new \App\Events\RoomUserLeft($room, $user))->toOthers();
+
+        return response()->json([
+            'message' => 'Left room successfully',
+        ]);
+    }
+
+
     public function messages(Room $room)
     {
         $user = Auth::user();
@@ -63,6 +78,8 @@ class RoomController extends Controller
             'user_id' => Auth::id(),
             'message' => $request->message,
         ]);
+
+        $room->touch();
 
         broadcast(new RoomMessageSent($msg))->toOthers();
 

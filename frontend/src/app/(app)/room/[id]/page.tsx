@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useEcho from "@/hooks/echo";
 import { axios } from "@/lib/axios";
 
@@ -11,12 +11,19 @@ export default function RoomPage() {
   const echo = useEcho();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMsg, setNewMsg] = useState('');
+  const router = useRouter();
 
   // Fetch existing messages
   const fetchMessages = async () => {
     const res = await axios.get(`/api/rooms/${roomId}/messages`);
     setMessages(res.data);
   };
+
+  const leaveRoom = async () => {
+    await axios.post(`/api/rooms/${roomId}/leave`);
+    router.push('/lobby');
+  };
+
 
   useEffect(() => {
     if (!roomId) return;
@@ -45,6 +52,8 @@ export default function RoomPage() {
 
   return (
     <div>
+      <button onClick={leaveRoom}>Leave Room</button>
+
       <h1>Room {roomId}</h1>
       {messages.length > 0 ? (
         <div>
