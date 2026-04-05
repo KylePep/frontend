@@ -7,19 +7,19 @@ return [
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
     |
-    | Configure which origins, headers, and methods are allowed for your app.
+    | Here you may configure your settings for cross-origin resource sharing
+    | or "CORS". This determines what cross-origin operations may execute
+    | in web browsers. You are free to adjust these settings as needed.
+    |
+    | To learn more: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie', '/login', '/register', '/logout'],
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    // Add your frontend dev server here:
-    'allowed_origins' => [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-    ],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:3000')],
 
     'allowed_origins_patterns' => [],
 
@@ -29,5 +29,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // if you’re using cookies or auth
+    'supports_credentials' => true,
+
 ];

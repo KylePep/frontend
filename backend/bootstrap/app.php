@@ -1,26 +1,36 @@
 <?php
 
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\HandleCors;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
+        // channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
+    ->withBroadcasting(
+        __DIR__.'/../routes/channels.php',
+        ['prefix' => 'api', 'middleware' => ['api', 'auth:sanctum']],
+    )
     ->withMiddleware(function (Middleware $middleware): void {
-        // API middleware group
-        $middleware->appendToGroup('api', [
-            HandleCors::class, // must come first
-            EnsureFrontendRequestsAreStateful::class,
-            // throttle and bindings are usually already applied
+        $middleware->api(prepend: [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
-})
-    ->withExceptions(function (Exceptions $exceptions): void {
+
+        $middleware->alias([
+            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+        ]);
+
         //
-    })->create();
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+    })
+    ->withSchedule(function (Schedule $schedule){
+        $schedule->command('rooms:cleanup')->everyThirtyMinutes();
+    })
+    ->create();
